@@ -26,29 +26,34 @@ Game.prototype =
      * Build the scene.
      */    
     build: function () { 
+        this.drawBoundaries();
         this.drawBackground();
     },
     
     /**
-     * Draw the background elements.
+     * Draws the play field boundaries.
      */
-    drawBackground: function () {
-
-        var endPointY = this._height - 20;
-
+    drawBoundaries: function () {
         // Draw the borders.
         var walls = new PIXI.Graphics();
         walls.beginFill(0xFFFFFF, 0.5);
         walls.drawRect(0, 0, this._width, 10);
-        walls.drawRect(this._width - 10, 10, 10, endPointY);
+        walls.drawRect(this._width - 10, 10, 10, this._height - 20);
         walls.drawRect(0, this._height - 10, this._width, 10);
-        walls.drawRect(0, 10, 10, endPointY);
+        walls.drawRect(0, 10, 10, this._height - 20);
 
         // Attach the walls to the background stage.
         this._bgStage.addChild(walls);
 
         // Render the boundaries once.
         this._bgRenderer.render(this._bgStage);
+    },
+    
+    /**
+     * Draw the background elements.
+     */
+    drawBackground: function () {
+        var endPointY = this._height - 20;
 
         // Draw the  'goal' lines.
         // Left goal line.
@@ -81,7 +86,6 @@ Game.prototype =
         var spaceLength = 12;
         
         middleLine.position.set(startPointM[0], startPointM[1]);
-       
         var y = 0;
         var j = 0;
 
