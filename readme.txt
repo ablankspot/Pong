@@ -1,4 +1,6 @@
-->Credits:
+README
+This is a simple Pong game done in HTML5 with Pixi JS.
 
--->Audio:
-	PongGameSounds.wav -> freesound.org -> mickdow
+    ->Credits:
+        -->Audio:
+	        PongGameSounds.wav -> freesound.org -> mickdow
