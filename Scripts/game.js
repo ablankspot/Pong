@@ -15,6 +15,7 @@ var Game = function () {
     // Create the main stage to draw on.
     this._stage = new PIXI.Stage();
 
+    // Area of the goal space behind the paddle.
     this._goalSpaceWidth = Math.ceil(this._width / 10);
 
     this.build();
@@ -28,6 +29,11 @@ Game.prototype =
     build: function () { 
         this.drawBoundaries();
         this.drawBackground();
+        this.createPaddles();
+        this.createBall();
+
+        // Begin the first frame.
+        requestAnimationFrame(this.tick.bind(this));
     },
     
     /**
@@ -61,7 +67,7 @@ Game.prototype =
         var startPointL = [this._goalSpaceWidth, 10];
         goalLineLeft.position.set(startPointL[0], startPointL[1]);
 
-        goalLineLeft.lineStyle(5, 0xff0000)
+        goalLineLeft.lineStyle(5, 0xff0000, 0.5)
             .moveTo(0, 0)
             .lineTo(0, endPointY);
 
@@ -70,13 +76,12 @@ Game.prototype =
         var startPointR = [this._width - this._goalSpaceWidth, 10];
 
         goalLineRight.position.set(startPointR[0], startPointR[1]);
-        goalLineRight.lineStyle(5, 0xff0000)
+        goalLineRight.lineStyle(5, 0xff0000, 0.5)
             .moveTo(0, 0)
             .lineTo(0, endPointY);
 
         // Creating dashed line for the middle.
         var middleLine = new PIXI.Graphics();
-
         var startPointM = [this._width / 2, 10];
 
         // The length of the dash.
@@ -97,10 +102,60 @@ Game.prototype =
             j++;
             y = (j * (dashedLength + spaceLength));
         } while (y < this._height - (dashedLength + spaceLength));
-
+        
         this._bgStage.addChild(middleLine);
         this._bgStage.addChild(goalLineLeft);
         this._bgStage.addChild(goalLineRight);
         this._bgRenderer.render(this._bgStage);
-    }
+    },
+
+    /**
+     * Creates the paddles for the players.
+     */
+    createPaddles: function () { 
+        var paddleWidth = 20;
+        var paddleHeight = 150;
+
+        // [0] -> left paddle
+        // [1] -> right paddle
+        var paddleGraphics = [];
+
+        // Create left paddle
+        paddleGraphics[0] = new PIXI.Graphics();
+        
+        paddleGraphics[0].beginFill(0xffffff);
+        paddleGraphics[0].drawRoundedRect(this._goalSpaceWidth + 4, (this._height / 2) - (paddleHeight/2), paddleWidth, paddleHeight, 5);
+        paddleGraphics[0].endFill();
+
+        // Create right paddle.
+        paddleGraphics[1] = new PIXI.Graphics();
+
+        paddleGraphics[1].beginFill(0xffffff);
+        paddleGraphics[1].drawRoundedRect(this._width - this._goalSpaceWidth - paddleWidth - 4, (this._height / 2) - (paddleHeight / 2), paddleWidth, paddleHeight, 5);
+        paddleGraphics[1].endFill();
+
+        this._stage.addChild(paddleGraphics[0]);
+        this._stage.addChild(paddleGraphics[1]);
+    },
+
+    /**
+     * Creates the ball to play with.
+     */
+    createBall: function () {
+        var ballGraphics = new PIXI.Graphics();
+
+        ballGraphics.beginFill(0xffffff);
+        ballGraphics.drawCircle(this._width / 2, this._height / 2, 30);
+        ballGraphics.endFill();
+
+        this._stage.addChild(ballGraphics);
+    },
+
+    /**
+     * Fires at the end of the gameloop to reset and redraw the canvas.
+     */
+    tick: function () {
+        this._renderer.render(this._stage);
+        requestAnimationFrame(this.tick.bind(this));
+     }    
 }
