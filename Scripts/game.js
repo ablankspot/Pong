@@ -18,6 +18,15 @@ var Game = function () {
     // Area of the goal space behind the paddle.
     this._goalSpaceWidth = Math.ceil(this._width / 10);
 
+    // Keyboard event listeners.
+    window.addEventListener('keydown', function (event) {
+        this.handleKeys(event.keyCode, true);
+    }.bind(this), false);
+
+    window.addEventListener('keyup', function (event) {
+        this.handleKeys(event.keyCode, false);
+    }.bind(this), false);
+
     this.build();
 }
 
@@ -113,29 +122,31 @@ Game.prototype =
      * Creates the paddles for the players.
      */
     createPaddles: function () { 
-        var paddleWidth = 20;
-        var paddleHeight = 150;
+        this._paddleWidth = 20;
+        this._paddleHeight = 150;
 
         // [0] -> left paddle
         // [1] -> right paddle
-        var paddleGraphics = [];
+        this._paddleGraphics = [];
 
         // Create left paddle
-        paddleGraphics[0] = new PIXI.Graphics();
-        
-        paddleGraphics[0].beginFill(0xffffff);
-        paddleGraphics[0].drawRoundedRect(this._goalSpaceWidth + 4, (this._height / 2) - (paddleHeight/2), paddleWidth, paddleHeight, 5);
-        paddleGraphics[0].endFill();
+        this._paddleGraphics[0] = new PIXI.Graphics();
+        this._paddleGraphics[0].position.set(this._goalSpaceWidth + 4, (this._height / 2) - (this._paddleHeight / 2));
+        this._paddleGraphics[0].beginFill(0xffffff);
+        this._paddleGraphics[0].moveTo(0, 0);
+        this._paddleGraphics[0].drawRoundedRect(0, 0, this._paddleWidth, this._paddleHeight, 5);
+        this._paddleGraphics[0].endFill();
 
         // Create right paddle.
-        paddleGraphics[1] = new PIXI.Graphics();
+        this._paddleGraphics[1] = new PIXI.Graphics();
+        this._paddleGraphics[1].position.set(this._width - this._goalSpaceWidth - this._paddleWidth - 4, (this._height / 2) - (this._paddleHeight / 2));
+        this._paddleGraphics[1].beginFill(0xffffff);
+        this._paddleGraphics[1].moveTo(0, 0);
+        this._paddleGraphics[1].drawRoundedRect(0, 0, this._paddleWidth, this._paddleHeight, 5);
+        this._paddleGraphics[1].endFill();
 
-        paddleGraphics[1].beginFill(0xffffff);
-        paddleGraphics[1].drawRoundedRect(this._width - this._goalSpaceWidth - paddleWidth - 4, (this._height / 2) - (paddleHeight / 2), paddleWidth, paddleHeight, 5);
-        paddleGraphics[1].endFill();
-
-        this._stage.addChild(paddleGraphics[0]);
-        this._stage.addChild(paddleGraphics[1]);
+        this._stage.addChild(this._paddleGraphics[0]);
+        this._stage.addChild(this._paddleGraphics[1]);
     },
 
     /**
@@ -152,9 +163,51 @@ Game.prototype =
     },
 
     /**
+     * Handle key presses and filter them.
+     * @param {Number}  code    Key code pressed.
+     * @param {Boolean} state   true/false
+     */
+    handleKeys: function (code, state) {
+        switch (code) {
+            case 38: // Up
+                this._keyUp = state;
+                break;
+            case 40: // Down
+                this._keyDown = state;
+                break;
+        }
+    },
+
+    /**
+     * Update the physics of the game within the gameloop.
+     */
+    updatePhysics: function () {
+        this._paddleSpeed = 15;
+
+        if (this._keyUp) {
+            this._paddleVelocity = -1 * this._paddleSpeed;
+        }
+        else if (this._keyDown) {
+            this._paddleVelocity = this._paddleSpeed;
+        }
+        else {
+            this._paddleVelocity = 0;
+        }
+
+        var newY = this._paddleGraphics[0].position.y + this._paddleVelocity;
+
+        // Keep the paddle within the boundaries.
+        if (newY >= 20 && newY <= this._height - this._paddleHeight - 20) {
+            // The input only updates the player on the left (P1).
+            this._paddleGraphics[0].position.set(this._paddleGraphics[0].position.x, newY);
+        }
+    },
+    
+    /**
      * Fires at the end of the gameloop to reset and redraw the canvas.
      */
     tick: function () {
+        this.updatePhysics();
         this._renderer.render(this._stage);
         requestAnimationFrame(this.tick.bind(this));
      }    
