@@ -15,6 +15,9 @@ var Game = function () {
     // Create the main stage to draw on.
     this._stage = new PIXI.Stage();
 
+    // Setup physics world.
+    this._world = new p2.World({ gravity: [0, 0] });
+
     // Area of the goal space behind the paddle.
     this._goalSpaceWidth = Math.ceil(this._width / 10);
 
@@ -49,13 +52,15 @@ Game.prototype =
      * Draws the play field boundaries.
      */
     drawBoundaries: function () {
-        // Draw the borders.
+               
+        // Draw the wall borders.
         var walls = new PIXI.Graphics();
         walls.beginFill(0xFFFFFF, 0.5);
         walls.drawRect(0, 0, this._width, 10);
         walls.drawRect(this._width - 10, 10, 10, this._height - 20);
         walls.drawRect(0, this._height - 10, this._width, 10);
         walls.drawRect(0, 10, 10, this._height - 20);
+        walls.endFill();
 
         // Attach the walls to the background stage.
         this._bgStage.addChild(walls);
@@ -153,13 +158,48 @@ Game.prototype =
      * Creates the ball to play with.
      */
     createBall: function () {
-        var ballGraphics = new PIXI.Graphics();
 
+        var x = Math.round(this._width / 2);
+        var y = Math.round(this._height / 2);
+        var radius = 30;
+
+        // Create ball physics object.
+        var ballBody = new p2.Body({
+            mass: 1,
+            angularVelocity: 0,
+            damping: 0,
+            angularDamping: 0,
+            position: [x - radius, y],
+            velocity: [0, -150]
+        });
+
+        ballBody.addShape(new p2.Circle({ radius: radius, sensor: true }));
+        
+        // Create ball graphics.
+        var ballGraphics = new PIXI.Graphics();
         ballGraphics.beginFill(0xffffff);
-        ballGraphics.drawCircle(this._width / 2, this._height / 2, 30);
+        ballGraphics.drawCircle(radius, radius, radius);
         ballGraphics.endFill();
 
-        this._stage.addChild(ballGraphics);
+        // Cache the ball to only use one draw call per tick.
+        var ballCache = new PIXI.CanvasRenderer(radius * 2, radius  * 2, { transparent: true });
+        var ballCacheStage = new PIXI.Stage();
+        ballCacheStage.addChild(ballGraphics);
+        ballCache.render(ballCacheStage);
+        var ballTexture = PIXI.Texture.fromCanvas(ballCache.view);
+
+        // Put everything into a ball game object.
+        this._ball = {
+            graphics: new PIXI.Sprite(ballTexture),
+            body: ballBody
+        };
+
+        this._world.addBody(this._ball.body);
+        this._stage.addChild(this._ball.graphics);
+
+        this._world.on('beginContact', function (event) {
+            // TODO: Interact with a paddle.
+        }.bind(this));
     },
 
     /**
@@ -182,6 +222,21 @@ Game.prototype =
      * Update the physics of the game within the gameloop.
      */
     updatePhysics: function () {
+        
+        // Update Ball
+        var x = this._ball.body.position[0];
+        var y = this._ball.body.position[1];
+
+        // Hits the lower or upper bound
+        if ((y + 60) >= this._height - 10 || y <= 10) {
+            this._ball.body.velocity[1] *= -1;
+        }
+
+        this._ball.graphics.x = x;
+        this._ball.graphics.y = y;
+
+
+        // Update P1 paddle
         this._paddleSpeed = 15;
 
         if (this._keyUp) {
@@ -201,6 +256,9 @@ Game.prototype =
             // The input only updates the player on the left (P1).
             this._paddleGraphics[0].position.set(this._paddleGraphics[0].position.x, newY);
         }
+
+        // Step the physics simulation forward.
+        this._world.step(1 / 60);
     },
     
     /**
