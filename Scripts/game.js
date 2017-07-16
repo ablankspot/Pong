@@ -41,6 +41,7 @@ Game.prototype =
     build: function () { 
         this.drawBoundaries();
         this.drawBackground();
+        this.setupScores();
         this.createPaddles();
         this.createBall();
 
@@ -162,6 +163,9 @@ Game.prototype =
         var x = Math.round(this._width / 2);
         var y = Math.round(this._height / 2);
         var radius = 30;
+        var speed = 1000;
+        var vx = (Math.random() - 0.5) * speed;
+        var vy = (Math.random() - 0.5) * speed;
 
         // Create ball physics object.
         var ballBody = new p2.Body({
@@ -170,7 +174,7 @@ Game.prototype =
             damping: 0,
             angularDamping: 0,
             position: [x - radius, y],
-            velocity: [0, -150]
+            velocity: [vx, vy]
         });
 
         ballBody.addShape(new p2.Circle({ radius: radius, sensor: true }));
@@ -219,6 +223,45 @@ Game.prototype =
     },
 
     /**
+     * Renders the scores for the players.
+     */
+    setupScores: function () {
+    
+        this._scores = {
+            values: [0, 0]
+        };
+
+        var fieldWidth = Math.round(this._width / 2) - this._goalSpaceWidth;
+
+        var scoreTextLeft = new PIXI.Text(this._scores.values[0], {
+            fontFamily: 'Arial',
+            fontSize: '120px',
+            fontStyle: 'bold',
+            fill: '#cccccc',
+            align: 'center'
+        });
+
+        scoreTextLeft.x = Math.round(fieldWidth / 2) + this._goalSpaceWidth - 50;
+        scoreTextLeft.y = 0;
+
+        var scoreTextRight = new PIXI.Text(this._scores.values[1], {
+            fontFamily: 'Arial',
+            fontSize: '120px',
+            fontStyle: 'bold',
+            fill: '#cccccc',
+            align: 'center'
+        });
+
+        scoreTextRight.x = Math.round(fieldWidth / 2) + Math.round(this._width / 2) - 50;
+        scoreTextRight.y = 0;
+
+        this._scores.texts = [scoreTextLeft, scoreTextRight];
+
+        this._stage.addChild(this._scores.texts[0]);
+        this._stage.addChild(this._scores.texts[1]);
+    },
+    
+    /**
      * Update the physics of the game within the gameloop.
      */
     updatePhysics: function () {
@@ -231,6 +274,29 @@ Game.prototype =
         if ((y + 60) >= this._height - 10 || y <= 10) {
             this._ball.body.velocity[1] *= -1;
         }
+
+        // Check for a goal.
+        if ((x + 65) < this._goalSpaceWidth) {
+            // Right player scored.
+            this._scores.values[1]++;
+            this._scores.texts[1].text = this._scores.values[1];
+
+            // Reset the ball.
+            this.resetBall();
+
+            // TODO: Reset paddles
+        }
+        else if (x > this._width - this._goalSpaceWidth) { 
+            // Left player scored.
+            this._scores.values[0]++;
+            this._scores.texts[0].text = this._scores.values[0];
+
+            // Reset the ball.
+            this.resetBall();
+
+            // TODO: Reset paddles.
+        }
+
 
         this._ball.graphics.x = x;
         this._ball.graphics.y = y;
@@ -268,5 +334,20 @@ Game.prototype =
         this.updatePhysics();
         this._renderer.render(this._stage);
         requestAnimationFrame(this.tick.bind(this));
-     }    
+    },
+
+    /**
+     * Resets the physics body of the ball to its initial state.
+     */
+    resetBall: function () {
+        var x = Math.round(this._width / 2);
+        var y = Math.round(this._height / 2);
+        var radius = 30;
+        var speed = 1000;
+        var vx = (Math.random() - 0.5) * speed;
+        var vy = (Math.random() - 0.5) * speed;
+
+        this._ball.body.position = [x, y];
+        this._ball.body.velocity = [vx, vy];
+     }
 }
