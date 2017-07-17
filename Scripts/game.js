@@ -128,31 +128,45 @@ Game.prototype =
      * Creates the paddles for the players.
      */
     createPaddles: function () { 
+        
         this._paddleWidth = 20;
         this._paddleHeight = 150;
+        var paddleBodies = [];
 
-        // [0] -> left paddle
-        // [1] -> right paddle
-        this._paddleGraphics = [];
+        // Physics body for the left paddle.
+        paddleBodies[0] = new p2.Body({
+            mass: 1,
+            angularVelocity: 0,
+            damping: 0,
+            angularDamping: 0,
+            position: [this._goalSpaceWidth + 4, Math.round(this._height / 2) - Math.round(this._paddleHeight / 2)]
+        });
 
-        // Create left paddle
-        this._paddleGraphics[0] = new PIXI.Graphics();
-        this._paddleGraphics[0].position.set(this._goalSpaceWidth + 4, (this._height / 2) - (this._paddleHeight / 2));
-        this._paddleGraphics[0].beginFill(0xffffff);
-        this._paddleGraphics[0].moveTo(0, 0);
-        this._paddleGraphics[0].drawRoundedRect(0, 0, this._paddleWidth, this._paddleHeight, 5);
-        this._paddleGraphics[0].endFill();
+        // Create paddle texture
+        var paddleGraphic = new PIXI.Graphics();
+        paddleGraphic.beginFill(0xffffff);
+        paddleGraphic.drawRoundedRect(0, 0, this._paddleWidth, this._paddleHeight, 5);
+        paddleGraphic.endFill();
+
+        var paddleCache = new PIXI.CanvasRenderer(this._paddleWidth, this._paddleHeight, { transparent: true });
+        var paddleCacheStage = new PIXI.Stage();
+        paddleCacheStage.addChild(paddleGraphic);
+        paddleCache.render(paddleCacheStage);
+        var paddleTexture = new PIXI.Texture.fromCanvas(paddleCache.view);
 
         // Create right paddle.
-        this._paddleGraphics[1] = new PIXI.Graphics();
-        this._paddleGraphics[1].position.set(this._width - this._goalSpaceWidth - this._paddleWidth - 4, (this._height / 2) - (this._paddleHeight / 2));
-        this._paddleGraphics[1].beginFill(0xffffff);
-        this._paddleGraphics[1].moveTo(0, 0);
-        this._paddleGraphics[1].drawRoundedRect(0, 0, this._paddleWidth, this._paddleHeight, 5);
-        this._paddleGraphics[1].endFill();
+        // paddleTextures[1].position.set(this._width - this._goalSpaceWidth - this._paddleWidth - 4, (this._height / 2) - (this._paddleHeight / 2));
 
-        this._stage.addChild(this._paddleGraphics[0]);
-        this._stage.addChild(this._paddleGraphics[1]);
+        this._paddles = {
+            graphics: [new PIXI.Sprite(paddleTexture), new PIXI.Sprite(paddleTexture)],
+            body: paddleBodies
+        };
+
+        this._paddles.graphics[0].position.set(this._goalSpaceWidth + 4, Math.round(this._height / 2) - Math.round(this._paddleHeight));
+
+        this._world.addBody(this._paddles.body[0]);
+        this._stage.addChild(this._paddles.graphics[0]);
+        // this._stage.addChild(this._paddles.graphics[1]);
     },
 
     /**
@@ -176,8 +190,6 @@ Game.prototype =
             position: [x - radius, y],
             velocity: [vx, vy]
         });
-
-        ballBody.addShape(new p2.Circle({ radius: radius, sensor: true }));
         
         // Create ball graphics.
         var ballGraphics = new PIXI.Graphics();
@@ -200,10 +212,6 @@ Game.prototype =
 
         this._world.addBody(this._ball.body);
         this._stage.addChild(this._ball.graphics);
-
-        this._world.on('beginContact', function (event) {
-            // TODO: Interact with a paddle.
-        }.bind(this));
     },
 
     /**
@@ -281,29 +289,38 @@ Game.prototype =
             this._scores.values[1]++;
             this._scores.texts[1].text = this._scores.values[1];
 
-            // Reset the ball.
+            // Reset the ball and the paddles.
             this.resetBall();
-
-            // TODO: Reset paddles
+            this.resetPaddles();
         }
         else if (x > this._width - this._goalSpaceWidth) { 
             // Left player scored.
             this._scores.values[0]++;
             this._scores.texts[0].text = this._scores.values[0];
 
-            // Reset the ball.
+            // Reset the ball and the paddles.
             this.resetBall();
-
-            // TODO: Reset paddles.
+            this.resetPaddles();
         }
+        
+        // Check if the ball hits a paddle.
+        // Coordinates for the left paddle.
+        var p1x = this._paddles.body[0].position[0];
+        var p1y = this._paddles.body[0].position[1];
 
+        // Is in the X coordinate of the left paddle.
+        if (x <= (p1x + this._paddleWidth)) {
+            // Is whithin the Y space of the paddle.
+            if ((y + 30) >= p1y && (y + 30) <= (p1y + this._paddleHeight)) {
+                this._ball.body.velocity[0] = (this._ball.body.velocity[0] < 0) ? this._ball.body.velocity[0] * -1 : this._ball.body.velocity[0];
+            }
+        }
 
         this._ball.graphics.x = x;
         this._ball.graphics.y = y;
 
-
         // Update P1 paddle
-        this._paddleSpeed = 15;
+        this._paddleSpeed = 300;
 
         if (this._keyUp) {
             this._paddleVelocity = -1 * this._paddleSpeed;
@@ -315,12 +332,15 @@ Game.prototype =
             this._paddleVelocity = 0;
         }
 
-        var newY = this._paddleGraphics[0].position.y + this._paddleVelocity;
+        this._paddles.body[0].velocity[1] = this._paddleVelocity;
+        this._paddles.graphics[0].y = this._paddles.body[0].position[1];
 
         // Keep the paddle within the boundaries.
-        if (newY >= 20 && newY <= this._height - this._paddleHeight - 20) {
-            // The input only updates the player on the left (P1).
-            this._paddleGraphics[0].position.set(this._paddleGraphics[0].position.x, newY);
+        if (this._paddles.body[0].position[1] <= 10) {
+            this._paddles.body[0].position[1] = 10;    
+        }
+        else if (this._paddles.body[0].position[1] >= this._height - this._paddleHeight - 10){
+            this._paddles.body[0].position[1] = this._height - this._paddleHeight - 10;
         }
 
         // Step the physics simulation forward.
@@ -349,5 +369,14 @@ Game.prototype =
 
         this._ball.body.position = [x, y];
         this._ball.body.velocity = [vx, vy];
+    },
+    
+    /**
+     * Resets the physics body for the paddles to their initial state.
+     */
+    resetPaddles: function () {
+        this._paddles.body[0].position = [this._goalSpaceWidth + 4, Math.round(this._height / 2) - Math.round(this._paddleHeight / 2)];
+
+        // TODO: Reset Right paddle.
      }
 }
