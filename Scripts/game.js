@@ -1,19 +1,29 @@
+// Game state constants.
+var START_SCREEN = 0;
+var IN_GAME = 1;
+var PAUSE = 2;
+var END_GAME = 3;
+
+
 var Game = function () { 
     // Set the width and height of the scene.
     this._width = 1920;
     this._height = 1080;
 
+    // Set the initial game state.
+    this._gameState = START_SCREEN;
+
     // Setup the backgournd canvas.
     this._bgRenderer = new PIXI.CanvasRenderer(this._width, this._height);
     document.body.appendChild(this._bgRenderer.view);
-    this._bgStage = new PIXI.Stage();
+    this._bgStage = new PIXI.Container();
 
     // Setup the rendering surface.
     this._renderer = new PIXI.CanvasRenderer(this._width, this._height, { transparent: true });
     document.body.appendChild(this._renderer.view);
 
     // Create the main stage to draw on.
-    this._stage = new PIXI.Stage();
+    this._stage = new PIXI.Container();
 
     // Setup physics world.
     this._world = new p2.World({ gravity: [0, 0] });
@@ -39,15 +49,40 @@ Game.prototype =
      * Build the scene.
      */    
     build: function () { 
+        
+        this.drawStartScreen();
         this.drawBoundaries();
         this.drawBackground();
-        this.setupScores();
-        this.createPaddles();
-        this.createBall();
+        // this.setupScores();
+        // this.createPaddles();
+        // this.createBall();
 
         // Begin the first frame.
         requestAnimationFrame(this.tick.bind(this));
+        
     },
+
+    /**
+     * 
+     */
+    drawStartScreen: function () {
+        // Create logo texture from image        
+        this._logo = PIXI.Sprite.fromImage("Assets/Logo.png");
+        this._logo.x = 200;
+        this._logo.y = 10;
+        this._logo.width = this._width - (this._goalSpaceWidth * 2) - 20;
+        this._logo._height = Math.round(this._height / 2);
+
+        this._onePlayerButton = PIXI.Sprite.fromImage("Assets/OnePlayerButton.png");
+        this._onePlayerButton.x = 200;
+        this._onePlayerButton.y = Math.round(this._height / 2) + 50;
+        this._onePlayerButton.width = Math.round(this._width / 2) - 100 - this._goalSpaceWidth;
+        this._onePlayerButton.height = Math.round(this._height / 2) - 200;
+
+        this._stage.addChild(this._logo);
+        this._stage.addChild(this._onePlayerButton);
+        this._renderer.render(this._stage);
+     },
     
     /**
      * Draws the play field boundaries.
@@ -281,120 +316,121 @@ Game.prototype =
      */
     updatePhysics: function () {
         
-        //===================================================================
-        // UPDATE BALL
-        //===================================================================
-        var x = this._ball.body.position[0];
-        var y = this._ball.body.position[1];
+        if (this._gameState == IN_GAME) {
+            //===================================================================
+            // UPDATE BALL
+            //===================================================================
+            var x = this._ball.body.position[0];
+            var y = this._ball.body.position[1];
 
-        // Hits the lower or upper bound
-        if ((y + 60) >= this._height - 10 || y <= 10) {
-            this._ball.body.velocity[1] *= -1;
-        }
+            // Hits the lower or upper bound
+            if ((y + 60) >= this._height - 10 || y <= 10) {
+                this._ball.body.velocity[1] *= -1;
+            }
 
-        // Check for a goal.
-        if ((x + 65) < this._goalSpaceWidth) {
-            // Right player scored.
-            this._scores.values[1]++;
-            this._scores.texts[1].text = this._scores.values[1];
+            // Check for a goal.
+            if ((x + 65) < this._goalSpaceWidth) {
+                // Right player scored.
+                this._scores.values[1]++;
+                this._scores.texts[1].text = this._scores.values[1];
 
-            // Reset the ball and the paddles.
-            this.resetBall();
-            this.resetPaddles();
-        }
-        else if (x > this._width - this._goalSpaceWidth) { 
-            // Left player scored.
-            this._scores.values[0]++;
-            this._scores.texts[0].text = this._scores.values[0];
+                // Reset the ball and the paddles.
+                this.resetBall();
+                this.resetPaddles();
+            }
+            else if (x > this._width - this._goalSpaceWidth) {
+                // Left player scored.
+                this._scores.values[0]++;
+                this._scores.texts[0].text = this._scores.values[0];
 
-            // Reset the ball and the paddles.
-            this.resetBall();
-            this.resetPaddles();
-        }
+                // Reset the ball and the paddles.
+                this.resetBall();
+                this.resetPaddles();
+            }
         
-        // Check if the ball hits a paddle.
-        // Coordinates for the left paddle.
-        var p1x = this._paddles.body[0].position[0];
-        var p1y = this._paddles.body[0].position[1];
-        var p2x = this._paddles.body[1].position[0];
-        var p2y = this._paddles.body[1].position[1];
+            // Check if the ball hits a paddle.
+            // Coordinates for the left paddle.
+            var p1x = this._paddles.body[0].position[0];
+            var p1y = this._paddles.body[0].position[1];
+            var p2x = this._paddles.body[1].position[0];
+            var p2y = this._paddles.body[1].position[1];
 
-        // Is in the X coordinate of the left paddle.
-        if (x <= (p1x + this._paddleWidth)) {
-            // Is whithin the Y space of the paddle.
-            if ((y + 30) >= p1y && (y + 30) <= (p1y + this._paddleHeight)) {
-                this._ball.body.velocity[0] = (this._ball.body.velocity[0] < 0) ? this._ball.body.velocity[0] * -1 : this._ball.body.velocity[0];
+            // Is in the X coordinate of the left paddle.
+            if (x <= (p1x + this._paddleWidth)) {
+                // Is whithin the Y space of the paddle.
+                if ((y + 30) >= p1y && (y + 30) <= (p1y + this._paddleHeight)) {
+                    this._ball.body.velocity[0] = (this._ball.body.velocity[0] < 0) ? this._ball.body.velocity[0] * -1 : this._ball.body.velocity[0];
+                }
             }
-        }
 
-        // Is in the X coordinate of the right paddle.
-        if ((x + 30) >= (p2x - this._paddleWidth)) {
-            // Is whithin the Y space of the paddle.
-            if ((y + 30) >= p2y && (y + 30) <= (p2y + this._paddleHeight)) {
-                this._ball.body.velocity[0] = (this._ball.body.velocity[0] > 0) ? this._ball.body.velocity[0] * -1 : this._ball.body.velocity[0];
+            // Is in the X coordinate of the right paddle.
+            if ((x + 30) >= (p2x - this._paddleWidth)) {
+                // Is whithin the Y space of the paddle.
+                if ((y + 30) >= p2y && (y + 30) <= (p2y + this._paddleHeight)) {
+                    this._ball.body.velocity[0] = (this._ball.body.velocity[0] > 0) ? this._ball.body.velocity[0] * -1 : this._ball.body.velocity[0];
+                }
             }
-        }
 
-        this._ball.graphics.x = x;
-        this._ball.graphics.y = y;
-        //===================================================================
+            this._ball.graphics.x = x;
+            this._ball.graphics.y = y;
+            //===================================================================
 
-        //===================================================================
-        // UPDATE LEFT PADDLE
-        //===================================================================
-        this._paddleSpeed = 300;
+            //===================================================================
+            // UPDATE LEFT PADDLE
+            //===================================================================
+            this._paddleSpeed = 300;
 
-        if (this._keyUp) {
-            this._paddleLeftVelocity = -1 * this._paddleSpeed;
-        }
-        else if (this._keyDown) {
-            this._paddleLeftVelocity = this._paddleSpeed;
-        }
-        else {
-            this._paddleLeftVelocity = 0;
-        }
-
-        this._paddles.body[0].velocity[1] = this._paddleLeftVelocity;
-        this._paddles.graphics[0].y = this._paddles.body[0].position[1];
-
-        // Keep the paddle within the boundaries.
-        if (this._paddles.body[0].position[1] <= 10) {
-            this._paddles.body[0].position[1] = 10;    
-        }
-        else if (this._paddles.body[0].position[1] >= this._height - this._paddleHeight - 10){
-            this._paddles.body[0].position[1] = this._height - this._paddleHeight - 10;
-        }
-        //===================================================================
-
-        //===================================================================
-        // UPDATE RIGHT PADDLE
-        //===================================================================
-        this._paddleRightVelocity = 0;
-        
-        if (this._ball.body.velocity[0] > 0)
-        {
-            // The paddle is above the ball.
-            if ((p2y + Math.round(this._paddleHeight / 2)) < this._ball.body.position[1] + 30) {
-                this._paddleRightVelocity = this._paddleSpeed;
+            if (this._keyUp) {
+                this._paddleLeftVelocity = -1 * this._paddleSpeed;
             }
-            else if ((p2y + Math.round(this._paddleHeight / 2)) > this._ball.body.position[1] + 30) {
-                this._paddleRightVelocity = -1 * this._paddleSpeed;
+            else if (this._keyDown) {
+                this._paddleLeftVelocity = this._paddleSpeed;
             }
             else {
-                this._paddleRightVelocity = 0;
-             }
-        }
+                this._paddleLeftVelocity = 0;
+            }
 
-        this._paddles.body[1].velocity[1] = this._paddleRightVelocity;
-        this._paddles.graphics[1].y = this._paddles.body[1].position[1];
+            this._paddles.body[0].velocity[1] = this._paddleLeftVelocity;
+            this._paddles.graphics[0].y = this._paddles.body[0].position[1];
 
-        if (this._paddles.body[1].position[1] <= 10) {
-            this._paddles.body[1].position[1] = 10;
-        } else if (this._paddles.body[1].position[1] >= this._height - this._paddleHeight - 10) {
-            this._paddles.body[1].position[1] = this._height - this._paddleHeight - 10;
-        }
-        //===================================================================
+            // Keep the paddle within the boundaries.
+            if (this._paddles.body[0].position[1] <= 10) {
+                this._paddles.body[0].position[1] = 10;
+            }
+            else if (this._paddles.body[0].position[1] >= this._height - this._paddleHeight - 10) {
+                this._paddles.body[0].position[1] = this._height - this._paddleHeight - 10;
+            }
+            //===================================================================
+
+            //===================================================================
+            // UPDATE RIGHT PADDLE
+            //===================================================================
+            this._paddleRightVelocity = 0;
         
+            if (this._ball.body.velocity[0] > 0) {
+                // The paddle is above the ball.
+                if ((p2y + Math.round(this._paddleHeight / 2)) < this._ball.body.position[1] + 30) {
+                    this._paddleRightVelocity = this._paddleSpeed;
+                }
+                else if ((p2y + Math.round(this._paddleHeight / 2)) > this._ball.body.position[1] + 30) {
+                    this._paddleRightVelocity = -1 * this._paddleSpeed;
+                }
+                else {
+                    this._paddleRightVelocity = 0;
+                }
+            }
+
+            this._paddles.body[1].velocity[1] = this._paddleRightVelocity;
+            this._paddles.graphics[1].y = this._paddles.body[1].position[1];
+
+            if (this._paddles.body[1].position[1] <= 10) {
+                this._paddles.body[1].position[1] = 10;
+            } else if (this._paddles.body[1].position[1] >= this._height - this._paddleHeight - 10) {
+                this._paddles.body[1].position[1] = this._height - this._paddleHeight - 10;
+            }
+            //===================================================================
+        }
+
         // Step the physics simulation forward.
         this._world.step(1 / 60);
     },
