@@ -49,13 +49,10 @@ Game.prototype =
      * Build the scene.
      */    
     build: function () { 
-        
-        this.drawStartScreen();
+
         this.drawBoundaries();
         this.drawBackground();
-        // this.setupScores();
-        // this.createPaddles();
-        // this.createBall();
+        this.drawStartScreen();
 
         // Begin the first frame.
         requestAnimationFrame(this.tick.bind(this));
@@ -63,26 +60,52 @@ Game.prototype =
     },
 
     /**
-     * 
+     * Draws the start screen for the game.
      */
     drawStartScreen: function () {
-        // Create logo texture from image        
+        // Create logo
         this._logo = PIXI.Sprite.fromImage("Assets/Logo.png");
         this._logo.x = 200;
         this._logo.y = 10;
         this._logo.width = this._width - (this._goalSpaceWidth * 2) - 20;
         this._logo._height = Math.round(this._height / 2);
 
-        this._onePlayerButton = PIXI.Sprite.fromImage("Assets/OnePlayerButton.png");
+        // Create Textures for the buttons.
+        var buttonTexture = PIXI.Texture.fromImage("Assets/OnePlayerButton.png");
+        var buttonOverTexture = PIXI.Texture.fromImage("Assets/OnePlayerButtonHover.png");
+
+        // Create the button for one player game.
+        this._onePlayerButton = new PIXI.Sprite(buttonTexture);
         this._onePlayerButton.x = 200;
         this._onePlayerButton.y = Math.round(this._height / 2) + 50;
         this._onePlayerButton.width = Math.round(this._width / 2) - 100 - this._goalSpaceWidth;
         this._onePlayerButton.height = Math.round(this._height / 2) - 200;
+        this._onePlayerButton.interactive = true;
+        this._onePlayerButton.buttonMode = true;
 
+        // Events for the one player button.
+        this._onePlayerButton.on('mouseover', function () {
+            this.isOver = true;
+            this.texture = buttonOverTexture;
+        });
+
+        this._onePlayerButton.on('mouseout', function () {
+            this.isOver = false;
+            this.texture = buttonTexture;
+        });
+
+        this._onePlayerButton.on('mousedown', function () {
+            this._stage.removeChild(this._logo);
+            this._stage.removeChild(this._onePlayerButton);
+            this.initializeInGameComponents();
+            this._gameState = IN_GAME;
+        }.bind(this));
+                
+        // Render the Start screen elements.
         this._stage.addChild(this._logo);
         this._stage.addChild(this._onePlayerButton);
         this._renderer.render(this._stage);
-     },
+    },
     
     /**
      * Draws the play field boundaries.
@@ -219,7 +242,7 @@ Game.prototype =
         var x = Math.round(this._width / 2);
         var y = Math.round(this._height / 2);
         var radius = 30;
-        var speed = 1000;
+        var speed = 1200;
         var vx = (Math.random() - 0.5) * speed;
         var vy = (Math.random() - 0.5) * speed;
 
@@ -435,6 +458,13 @@ Game.prototype =
         this._world.step(1 / 60);
     },
     
+    initializeInGameComponents: function ()
+    { 
+        this.setupScores();
+        this.createPaddles();
+        this.createBall();
+    },
+
     /**
      * Fires at the end of the gameloop to reset and redraw the canvas.
      */
@@ -451,7 +481,7 @@ Game.prototype =
         var x = Math.round(this._width / 2);
         var y = Math.round(this._height / 2);
         var radius = 30;
-        var speed = 1000;
+        var speed = 1200;
         var vx = (Math.random() - 0.5) * speed;
         var vy = (Math.random() - 0.5) * speed;
 
