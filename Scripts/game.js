@@ -10,6 +10,11 @@ var Game = function () {
     this._width = 1920;
     this._height = 1080;
 
+    // Maintain correct aspect ratio.
+    window.addEventListener('resize', function () {
+        this.resize();
+    }.bind(this, false));
+
     // Set the initial game state.
     this._gameState = START_SCREEN;
 
@@ -50,8 +55,16 @@ Game.prototype =
      */    
     build: function () { 
 
+        // Adjust to screen size.
+        this.resize();
+
+        // Draw outer boundaries of the pong court.
         this.drawBoundaries();
+
+        // Draw the background elements.
         this.drawBackground();
+
+        // Draw the elements of the start screen.
         this.drawStartScreen();
 
         // Begin the first frame.
@@ -495,5 +508,28 @@ Game.prototype =
     resetPaddles: function () {
         this._paddles.body[0].position = [this._goalSpaceWidth + 4, Math.round(this._height / 2) - Math.round(this._paddleHeight / 2)];
         this._paddles.body[1].position = [this._width - this._goalSpaceWidth - this._paddleWidth - 4, (this._height / 2) - (this._paddleHeight / 2)];
-     }
+    },
+    
+    /**
+     * Adjusts the size of the game map to the screen.
+     */
+    resize: function () {
+        var ratio = 1080 / 1920;
+        var docWidth = document.body.clientWidth;
+        var docHeight = document.body.clientHeight;
+        var currentRatio = docHeight / docWidth;
+
+        if (currentRatio < ratio) {
+            this._bgRenderer.view.style.height = '100%';
+            this._renderer.view.style.height = '100%';
+            this._bgRenderer.view.style.width = 'auto';
+            this._renderer.view.style.width = 'auto';
+        }
+        else {
+            this._bgRenderer.view.style.width = '100%';
+            this._renderer.view.style.width = '100%';
+            this._bgRenderer.view.style.height = 'auto';
+            this._renderer.view.style.height = 'auto';
+        }
+    }
 }
