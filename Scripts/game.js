@@ -67,25 +67,42 @@ Game.prototype =
         // Draw the elements of the start screen.
         this.drawStartScreen();
 
+        // Setup audio.
+        this.setupAudio();
+
         // Begin the first frame.
         requestAnimationFrame(this.tick.bind(this));
         
     },
 
     /**
+     * Sets up the audio sprite for the game.
+     */
+    setupAudio: function () {
+        this._sounds = new Howl({
+            src: ['Assets/sounds/sound_sprite.mp3', 'Assets/sounds/sound_sprite.ogg'],
+            sprite: {
+                sd_start: [0, 210],
+                sd_paddle: [1350, 362],
+                sd_bound: [2900, 390]
+            }
+        });
+     },
+
+    /**
      * Draws the start screen for the game.
      */
     drawStartScreen: function () {
         // Create logo
-        this._logo = PIXI.Sprite.fromImage("Assets/Logo.png");
+        this._logo = PIXI.Sprite.fromImage("Assets/images/Logo.png");
         this._logo.x = 200;
         this._logo.y = 10;
         this._logo.width = this._width - (this._goalSpaceWidth * 2) - 20;
         this._logo._height = Math.round(this._height / 2);
 
         // Create Textures for the buttons.
-        var buttonTexture = PIXI.Texture.fromImage("Assets/OnePlayerButton.png");
-        var buttonOverTexture = PIXI.Texture.fromImage("Assets/OnePlayerButtonHover.png");
+        var buttonTexture = PIXI.Texture.fromImage("Assets/images/OnePlayerButton.png");
+        var buttonOverTexture = PIXI.Texture.fromImage("Assets/images/OnePlayerButtonHover.png");
 
         // Create the button for one player game.
         this._onePlayerButton = new PIXI.Sprite(buttonTexture);
@@ -108,6 +125,7 @@ Game.prototype =
         });
 
         this._onePlayerButton.on('mousedown', function () {
+            this._sounds.play('sd_start');
             this._stage.removeChild(this._logo);
             this._stage.removeChild(this._onePlayerButton);
             this.initializeInGameComponents();
@@ -361,6 +379,7 @@ Game.prototype =
 
             // Hits the lower or upper bound
             if ((y + 60) >= this._height - 10 || y <= 10) {
+                this._sounds.play('sd_bound');
                 this._ball.body.velocity[1] *= -1;
             }
 
@@ -396,6 +415,7 @@ Game.prototype =
                 // Is whithin the Y space of the paddle.
                 if ((y + 30) >= p1y && (y + 30) <= (p1y + this._paddleHeight)) {
                     this._ball.body.velocity[0] = (this._ball.body.velocity[0] < 0) ? this._ball.body.velocity[0] * -1 : this._ball.body.velocity[0];
+                    this._sounds.play('sd_paddle');
                 }
             }
 
@@ -404,6 +424,7 @@ Game.prototype =
                 // Is whithin the Y space of the paddle.
                 if ((y + 30) >= p2y && (y + 30) <= (p2y + this._paddleHeight)) {
                     this._ball.body.velocity[0] = (this._ball.body.velocity[0] > 0) ? this._ball.body.velocity[0] * -1 : this._ball.body.velocity[0];
+                    this._sounds.play('sd_paddle');
                 }
             }
 

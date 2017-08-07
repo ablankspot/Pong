@@ -1,0 +1,65 @@
+<?xml version="1.0" standalone="no" ?>
+<!DOCTYPE project PUBLIC "-//audacityproject-1.3.0//DTD//EN" "http://audacity.sourceforge.net/xml/audacityproject-1.3.0.dtd" >
+<project xmlns="http://audacity.sourceforge.net/xml/" projname="SoundSprites_data" version="1.3.0" audacityversion="2.1.3" sel0="2.9004214083" sel1="3.2900464083" vpos="96" h="2.5334060174" zoom="3359.5088752161" rate="48000.0" snapto="off" selectionformat="hh:mm:ss + milliseconds" frequencyformat="Hz" bandwidthformat="octaves">
+	<tags/>
+	<wavetrack name="177409__mickdow__ponggamesounds" channel="0" linked="1" mute="0" solo="0" height="150" minimized="0" isSelected="0" rate="48000" gain="1.0" pan="0.0">
+		<waveclip offset="0.00000000">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="10059">
+				<waveblock start="0">
+					<simpleblockfile filename="e000045b.au" len="10059" min="-0.360382" max="0.345581" rms="0.042645"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="177409__mickdow__ponggamesounds" channel="1" linked="0" mute="0" solo="0" height="150" minimized="0" isSelected="0" rate="48000" gain="1.0" pan="0.0">
+		<waveclip offset="0.00000000">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="10059">
+				<waveblock start="0">
+					<simpleblockfile filename="e00001d4.au" len="10059" min="-0.360382" max="0.345581" rms="0.042645"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="177409__mickdow__ponggamesounds" channel="0" linked="1" mute="0" solo="0" height="150" minimized="0" isSelected="0" rate="48000" gain="1.0" pan="0.0">
+		<waveclip offset="1.35018750">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="17374">
+				<waveblock start="0">
+					<simpleblockfile filename="e0000439.au" len="17374" min="-0.353851" max="0.394806" rms="0.063985"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="177409__mickdow__ponggamesounds" channel="1" linked="0" mute="0" solo="0" height="150" minimized="0" isSelected="0" rate="48000" gain="1.0" pan="0.0">
+		<waveclip offset="1.35018750">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="17374">
+				<waveblock start="0">
+					<simpleblockfile filename="e00007a4.au" len="17374" min="-0.353851" max="0.394806" rms="0.063985"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="177409__mickdow__ponggamesounds" channel="0" linked="1" mute="0" solo="0" height="150" minimized="0" isSelected="1" rate="48000" gain="1.0" pan="0.0">
+		<waveclip offset="2.90042141">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="18702">
+				<waveblock start="0">
+					<simpleblockfile filename="e0000728.au" len="18702" min="-0.381866" max="0.40448" rms="0.084402"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="177409__mickdow__ponggamesounds" channel="1" linked="0" mute="0" solo="0" height="150" minimized="0" isSelected="1" rate="48000" gain="1.0" pan="0.0">
+		<waveclip offset="2.90042141">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="18702">
+				<waveblock start="0">
+					<simpleblockfile filename="e0000e53.au" len="18702" min="-0.381866" max="0.40448" rms="0.084402"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+</project>
