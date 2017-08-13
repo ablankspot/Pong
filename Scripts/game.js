@@ -84,10 +84,11 @@ Game.prototype =
             sprite: {
                 sd_start: [0, 210],
                 sd_paddle: [1350, 362],
-                sd_bound: [2900, 390]
+                sd_bound: [2900, 390],
+                sd_goal: [5000, 392]
             }
         });
-     },
+    },
 
     /**
      * Draws the start screen for the game.
@@ -387,6 +388,7 @@ Game.prototype =
             if ((x + 65) < this._goalSpaceWidth) {
                 // Right player scored.
                 this._scores.values[1]++;
+                this._sounds.play('sd_goal');
                 this._scores.texts[1].text = this._scores.values[1];
 
                 // Reset the ball and the paddles.
@@ -396,6 +398,7 @@ Game.prototype =
             else if (x > this._width - this._goalSpaceWidth) {
                 // Left player scored.
                 this._scores.values[0]++;
+                this._sounds.play('sd_goal');
                 this._scores.texts[0].text = this._scores.values[0];
 
                 // Reset the ball and the paddles.
