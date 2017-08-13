@@ -324,6 +324,12 @@ Game.prototype =
             case 40: // Down
                 this._keyDown = state;
                 break;
+            case 27: // ESC key for pause
+                this._gameState = this._gameState == IN_GAME ? PAUSE : this._gameState;
+                break;
+
+            case 65: // Placeholder to un-pause
+                this._gameState = this._gameState == PAUSE ? IN_GAME : this._gameState;
         }
     },
 
@@ -489,10 +495,10 @@ Game.prototype =
                 this._paddles.body[1].position[1] = this._height - this._paddleHeight - 10;
             }
             //===================================================================
-        }
 
-        // Step the physics simulation forward.
-        this._world.step(1 / 60);
+            // Step the physics simulation forward.
+            this._world.step(1 / 60);
+        }
     },
     
     initializeInGameComponents: function ()
