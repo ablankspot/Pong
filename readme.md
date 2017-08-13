@@ -7,8 +7,9 @@ Credits
 Audio
 ------------
 
-For collision sounds: [mickdow](http://freesound.org/people/mickdow/sounds/177409/)
-For score sound:      [freezefast65](http://freesound.org/people/freezefast65/sounds/386862/)
+For collision sounds: [mickdow](http://freesound.org/people/mickdow/sounds/177409/).
+
+For score sound:      [freezefast65](http://freesound.org/people/freezefast65/sounds/386862/).
 
 Logo and Button's font
 ------------
